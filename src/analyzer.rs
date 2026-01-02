@@ -6,7 +6,7 @@ pub fn count_by_level(entries: &[LogEntry]) -> HashMap<LogLevel, usize> {
     let mut counts = HashMap::new();
 
     for entry in entries {
-        *counts.entry(entry.0).or_insert(0) += 1;
+        *counts.entry(entry.level).or_insert(0) += 1;
     }
 
     counts

@@ -8,4 +8,7 @@ pub enum LogLevel {
 }
 
 #[derive(Debug, Serialize)]
-pub struct LogEntry(pub LogLevel, pub String);
+pub struct LogEntry {
+    pub level: LogLevel,
+    pub message: String,
+}

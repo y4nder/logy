@@ -18,7 +18,7 @@ pub fn parse_line(line: &str) -> Result<LogEntry, LogyError> {
         .to_string();
 
     let level = parse_level(level_str)?;
-    Ok(LogEntry(level, message))
+    Ok(LogEntry { level, message })
 }
 
 pub fn parse_level(s: &str) -> Result<LogLevel, LogyError> {

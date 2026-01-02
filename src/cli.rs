@@ -4,6 +4,7 @@ pub struct CliOptions {
     pub filename: Option<String>,
     pub level_filter: Option<LogLevel>,
     pub json: bool,
+    pub strict: bool,
 }
 
 pub fn parse_args(args: &[String]) -> Result<CliOptions, LogyError> {
@@ -19,10 +20,12 @@ pub fn parse_args(args: &[String]) -> Result<CliOptions, LogyError> {
     });
 
     let json = args.iter().any(|arg| arg == "--json");
+    let strict = args.iter().any(|arg| arg == "--strict");
 
     Ok(CliOptions {
         filename,
         level_filter,
         json,
+        strict,
     })
 }

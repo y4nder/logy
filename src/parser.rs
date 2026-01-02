@@ -6,9 +6,10 @@ use crate::{
 pub fn parse_line(line: &str) -> Result<LogEntry, LogyError> {
     let mut parts = line.splitn(3, ' ');
 
-    let _date = parts
+    let date = parts
         .next()
-        .ok_or_else(|| LogyError::ParseError("missing date"))?;
+        .ok_or_else(|| LogyError::ParseError("missing date"))?
+        .to_string();
     let level_str = parts
         .next()
         .ok_or_else(|| LogyError::ParseError("missing log level"))?;
@@ -18,7 +19,11 @@ pub fn parse_line(line: &str) -> Result<LogEntry, LogyError> {
         .to_string();
 
     let level = parse_level(level_str)?;
-    Ok(LogEntry { level, message })
+    Ok(LogEntry {
+        date,
+        level,
+        message,
+    })
 }
 
 pub fn parse_level(s: &str) -> Result<LogLevel, LogyError> {

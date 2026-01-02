@@ -29,3 +29,26 @@ pub fn extract_log_entries<R: BufRead>(
 
     Ok(entries)
 }
+
+pub fn stream_logs<R: BufRead>(
+    reader: R,
+    level_filter: Option<LogLevel>,
+    strict: bool,
+    mut on_entry: impl FnMut(LogEntry),
+) -> Result<(), LogyError> {
+    for line in reader.lines() {
+        let line = line?;
+
+        match parse_line(&line) {
+            Ok(entry) => {
+                if level_filter.map_or(true, |lvl| entry.level == lvl) {
+                    on_entry(entry);
+                }
+            }
+            Err(e) if strict => return Err(e),
+            Err(_) => continue,
+        }
+    }
+
+    Ok(())
+}

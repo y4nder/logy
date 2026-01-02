@@ -32,12 +32,16 @@ fn run() -> Result<(), LogyError> {
         None => Box::new(BufReader::new(io::stdin())),
     };
 
-    let entries = extract_log_entries(reader, opts.level_filter);
+    let entries = extract_log_entries(reader, opts.level_filter, opts.strict)?;
     let counts = analyzer::count_by_level(&entries);
 
     if opts.json {
         println!("{}", serde_json::to_string_pretty(&entries)?);
     } else {
+        for entry in &entries {
+            println!("{:?}", entry);
+        }
+
         for (level, count) in counts {
             println!("{:?}: {}", level, count);
         }

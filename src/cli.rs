@@ -1,12 +1,12 @@
 use crate::{error::LogyError, log::LogLevel, parser::parse_level};
 
 pub struct CliOptions {
-    pub filename: String,
+    pub filename: Option<String>,
     pub level_filter: Option<LogLevel>,
 }
 
 pub fn parse_args(args: &[String]) -> Result<CliOptions, LogyError> {
-    let filename = args.get(1).ok_or(LogyError::MissingArgument)?.clone();
+    let filename = args.get(1).cloned();
 
     let level_filter = args.iter().find_map(|arg| {
         arg.strip_prefix("--level=")

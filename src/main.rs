@@ -1,4 +1,8 @@
-use std::{env, fs::File, io::BufReader};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use crate::{cli::parse_args, error::LogyError, reader::extract_log_entries};
 
@@ -20,8 +24,14 @@ fn run() -> Result<(), LogyError> {
     let args: Vec<String> = env::args().collect();
     let opts = parse_args(&args)?;
 
-    let file = File::open(&opts.filename)?;
-    let reader = BufReader::new(file);
+    let reader: Box<dyn std::io::BufRead> = match opts.filename {
+        Some(path) => {
+            let file = File::open(path)?;
+            Box::new(BufReader::new(file))
+        }
+        None => Box::new(BufReader::new(io::stdin())),
+    };
+
     let entries = extract_log_entries(reader, opts.level_filter);
     let counts = analyzer::count_by_level(&entries);
 

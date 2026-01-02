@@ -1,14 +1,11 @@
 use std::io::BufRead;
 
-use crate::{
-    error::LogyError,
-    log::{LogEntry, LogLevel},
-    parser::parse_line,
-};
+use crate::parser::parse_line;
+use crate::{error::LogyError, filters::Filters, log::LogEntry};
 
 pub fn extract_log_entries<R: BufRead>(
     reader: R,
-    level_filter: Option<LogLevel>,
+    filters: &Filters,
     strict: bool,
 ) -> Result<Vec<LogEntry>, LogyError> {
     let mut entries = Vec::new();
@@ -16,9 +13,25 @@ pub fn extract_log_entries<R: BufRead>(
     for line in reader.lines() {
         let line = line?;
 
+        if line.trim().is_empty() {
+            continue;
+        }
+
         match parse_line(&line, strict) {
             Ok(entry) => {
-                if level_filter.map_or(true, |lvl| entry.level == lvl) {
+                if let Some(since_date) = filters.since {
+                    if entry.date < since_date {
+                        continue;
+                    }
+                }
+
+                if let Some(until_date) = filters.until {
+                    if entry.date > until_date {
+                        continue;
+                    }
+                }
+
+                if filters.level.map_or(true, |lvl| entry.level == lvl) {
                     entries.push(entry);
                 }
             }
@@ -32,16 +45,32 @@ pub fn extract_log_entries<R: BufRead>(
 
 pub fn stream_logs<R: BufRead>(
     reader: R,
-    level_filter: Option<LogLevel>,
+    filters: &Filters,
     strict: bool,
     mut on_entry: impl FnMut(LogEntry),
 ) -> Result<(), LogyError> {
     for line in reader.lines() {
         let line = line?;
 
+        if line.trim().is_empty() {
+            continue;
+        }
+
         match parse_line(&line, strict) {
             Ok(entry) => {
-                if level_filter.map_or(true, |lvl| entry.level == lvl) {
+                if let Some(since_date) = filters.since {
+                    if entry.date < since_date {
+                        continue;
+                    }
+                }
+
+                if let Some(until_date) = filters.until {
+                    if entry.date > until_date {
+                        continue;
+                    }
+                }
+
+                if filters.level.map_or(true, |lvl| entry.level == lvl) {
                     on_entry(entry);
                 }
             }

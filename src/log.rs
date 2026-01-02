@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use serde::Serialize;
 
 #[derive(Debug, Serialize, Clone, Copy, PartialEq, Eq, Hash)]
@@ -10,7 +11,7 @@ pub enum LogLevel {
 
 #[derive(Debug, Serialize)]
 pub struct LogEntry {
-    pub date: String,
+    pub date: NaiveDate,
     pub level: LogLevel,
     pub message: String,
 }

@@ -5,27 +5,27 @@ use crate::{
     log::{LogEntry, LogLevel},
 };
 
-pub fn parse_line(line: &str, strict: bool) -> Result<LogEntry, LogyError> {
+pub fn parse_line(line: &str, _strict: bool) -> Result<LogEntry, LogyError> {
     let mut parts = line.splitn(3, ' ');
 
-    let date_str = parts.next().ok_or(LogyError::ParseError("missing date"))?;
+    let date_str = parts
+        .next()
+        .ok_or(LogyError::ParseError("missing date".into()))?;
 
-    if strict {
-        NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
-            .map_err(|_| LogyError::ParseError("invalid date"))?;
-    }
+    let date = NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+        .map_err(|_| LogyError::ParseError(format!("invalid date: {}", date_str)))?;
 
     let level_str = parts
         .next()
-        .ok_or_else(|| LogyError::ParseError("missing log level"))?;
+        .ok_or_else(|| LogyError::ParseError("missing log level".into()))?;
     let message = parts
         .next()
-        .ok_or_else(|| LogyError::ParseError("missing message"))?
+        .ok_or_else(|| LogyError::ParseError("missing message".into()))?
         .to_string();
 
     let level = parse_level(level_str)?;
     Ok(LogEntry {
-        date: date_str.to_string(),
+        date,
         level,
         message,
     })

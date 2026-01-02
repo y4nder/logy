@@ -25,3 +25,9 @@ impl From<std::io::Error> for LogyError {
         LogyError::Io(value)
     }
 }
+
+impl From<serde_json::Error> for LogyError {
+    fn from(_: serde_json::Error) -> Self {
+        LogyError::ParseError("failed to serialize JSON")
+    }
+}

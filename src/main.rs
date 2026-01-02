@@ -1,10 +1,17 @@
 use std::{
-    env,
     fs::File,
     io::{self, BufReader},
 };
 
-use crate::{cli::parse_args, error::LogyError, log::LogEntry, reader::extract_log_entries};
+use clap::Parser;
+
+use crate::{
+    cli::{CliArgs, CliOptions},
+    error::LogyError,
+    filters::SortMode,
+    log::LogEntry,
+    reader::extract_log_entries,
+};
 
 mod cli;
 mod error;
@@ -13,16 +20,23 @@ mod log;
 mod parser;
 mod reader;
 fn main() {
-    if let Err(e) = run() {
+    let args = CliArgs::parse();
+
+    let opts = match CliOptions::try_from(args) {
+        Ok(o) => o,
+        Err(e) => {
+            eprintln!("error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    if let Err(e) = run(opts) {
         eprintln!("error: {}", e);
         std::process::exit(1);
     }
 }
 
-fn run() -> Result<(), LogyError> {
-    let args: Vec<String> = env::args().collect();
-    let opts = parse_args(&args)?;
-
+fn run(opts: CliOptions) -> Result<(), LogyError> {
     let reader = make_reader(opts.filename)?;
 
     if opts.stream {
@@ -32,7 +46,7 @@ fn run() -> Result<(), LogyError> {
     } else {
         let mut entries = extract_log_entries(reader, &opts.filters, opts.strict)?;
 
-        sort_entries(&mut entries, opts.desc);
+        sort_entries(&mut entries, opts.filters.sort);
 
         if opts.json {
             println!("{}", serde_json::to_string_pretty(&entries)?);
@@ -61,10 +75,9 @@ fn print_entry(entry: &log::LogEntry, json: bool) {
     }
 }
 
-fn sort_entries(entries: &mut Vec<LogEntry>, desc: bool) {
-    if desc {
-        entries.sort_by_key(|e| std::cmp::Reverse(e.date));
-    } else {
-        entries.sort_by_key(|e| e.date);
+fn sort_entries(entries: &mut Vec<LogEntry>, sort_mode: SortMode) {
+    match sort_mode {
+        SortMode::Desc => entries.sort_by_key(|e| std::cmp::Reverse(e.date)),
+        SortMode::Asc => entries.sort_by_key(|e| e.date),
     }
 }

@@ -46,14 +46,16 @@ Key objectives include:
 
 Logy currently supports:
 
-* Reading logs from **files or standard input (stdin)**
-* Unix-style **pipeline composition**
-* Parsing a fixed, structured log format
-* Representing log severity using a strongly typed enum
-* Optional filtering by log level
-* **Strict validation mode** for failing on malformed log entries
-* **JSON output** for structured downstream consumption
-* Aggregation utilities such as counting entries by severity
+- Reading logs from **files** or **standard input (stdin)**
+- Unix-style **pipeline composition**
+- Parsing a fixed, structured log format
+- Representing log severity using a strongly typed enum
+- Optional filtering by log level
+- **Date-based filtering** using inclusive `since` / `until` bounds
+- **Descending or ascending ordering** of log entries by timestamp
+- **Strict validation mode** for rejecting malformed log entries
+- **JSON output** for structured downstream consumption
+- Basic aggregation utilities, such as counting entries by severity
 
 ---
 
@@ -72,18 +74,16 @@ Example:
 2025-03-21 INFO User login succeeded
 2025-03-21 WARN Rate limit approaching
 2025-03-21 ERROR Database timeout
-
-````
+```
 
 ---
-
 ## Usage
 
 ### Run with a log file
 
 ```bash
 cargo run -- app.log
-````
+```
 
 ### Read from stdin
 
@@ -109,10 +109,34 @@ cat app.log | cargo run -- --strict
 cat app.log | cargo run -- --json
 ```
 
+### Filter by date range
+
+```bash
+cargo run -- app.log --since=2025-03-22 --until=2025-03-22
+```
+
+The `--since` and `--until` flags accept dates in `YYYY-MM-DD` format and apply
+inclusive filtering based on the log entry timestamp.
+
+### Control output ordering
+
+```bash
+cargo run -- app.log --desc
+```
+
+By default, log entries are processed in ascending chronological order.
+The `--desc` flag reverses the ordering to show the most recent entries first.
+
 ### Combine features
 
 ```bash
-cat app.log | cargo run -- --level=ERROR --json --strict
+cat app.log | cargo run -- \
+  --level=ERROR \
+  --since=2025-03-22 \
+  --until=2025-03-22 \
+  --json \
+  --strict \
+  --desc
 ```
 
 ### Build optimized binary

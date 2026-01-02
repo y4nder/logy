@@ -35,8 +35,12 @@ fn run() -> Result<(), LogyError> {
     let entries = extract_log_entries(reader, opts.level_filter);
     let counts = analyzer::count_by_level(&entries);
 
-    for (level, count) in counts {
-        println!("{:?}: {}", level, count);
+    if opts.json {
+        println!("{}", serde_json::to_string_pretty(&entries)?);
+    } else {
+        for (level, count) in counts {
+            println!("{:?}: {}", level, count);
+        }
     }
 
     Ok(())

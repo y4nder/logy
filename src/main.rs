@@ -4,15 +4,14 @@ use std::{
     io::{self, BufReader},
 };
 
-use crate::{cli::parse_args, error::LogyError, reader::extract_log_entries};
+use crate::{cli::parse_args, error::LogyError, log::LogEntry, reader::extract_log_entries};
 
-mod analyzer;
 mod cli;
 mod error;
+mod filters;
 mod log;
 mod parser;
 mod reader;
-
 fn main() {
     if let Err(e) = run() {
         eprintln!("error: {}", e);
@@ -25,22 +24,21 @@ fn run() -> Result<(), LogyError> {
     let opts = parse_args(&args)?;
 
     let reader = make_reader(opts.filename)?;
+
     if opts.stream {
-        reader::stream_logs(reader, opts.level_filter, opts.strict, |entry| {
+        reader::stream_logs(reader, &opts.filters, opts.strict, |entry| {
             print_entry(&entry, opts.json);
         })?;
     } else {
-        let entries = extract_log_entries(reader, opts.level_filter, opts.strict)?;
-        let counts = analyzer::count_by_level(&entries);
+        let mut entries = extract_log_entries(reader, &opts.filters, opts.strict)?;
+
+        sort_entries(&mut entries, opts.desc);
+
         if opts.json {
             println!("{}", serde_json::to_string_pretty(&entries)?);
         } else {
             for entry in &entries {
                 println!("{:?}", entry);
-            }
-
-            for (level, count) in counts {
-                println!("{:?}: {}", level, count);
             }
         }
     }
@@ -60,5 +58,13 @@ fn print_entry(entry: &log::LogEntry, json: bool) {
         println!("{}", serde_json::to_string(entry).unwrap());
     } else {
         println!("{:?}", entry);
+    }
+}
+
+fn sort_entries(entries: &mut Vec<LogEntry>, desc: bool) {
+    if desc {
+        entries.sort_by_key(|e| std::cmp::Reverse(e.date));
+    } else {
+        entries.sort_by_key(|e| e.date);
     }
 }

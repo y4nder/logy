@@ -8,6 +8,7 @@ pub enum LogyError {
     InvalidLogLevel(String),
     ParseError(String),
     InvalidRange { since: NaiveDate, until: NaiveDate },
+    InvalidDate { field: &'static str, value: String },
     Io(io::Error),
 }
 
@@ -23,6 +24,13 @@ impl fmt::Display for LogyError {
                     "`since` ({since}) must be earlier than or equal to `until` ({until})"
                 )
             }
+            LogyError::InvalidDate { field, value, .. } => {
+                write!(
+                    f,
+                    "invalid date for '--{}': '{}', expected format YYYY-MM-DD",
+                    field, value
+                )
+            }
         }
     }
 }
@@ -36,5 +44,14 @@ impl From<std::io::Error> for LogyError {
 impl From<serde_json::Error> for LogyError {
     fn from(_: serde_json::Error) -> Self {
         LogyError::ParseError("failed to serialize JSON".into())
+    }
+}
+
+impl std::error::Error for LogyError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            LogyError::Io(error) => Some(error),
+            _ => None,
+        }
     }
 }

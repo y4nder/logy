@@ -16,7 +16,7 @@ pub fn extract_log_entries<R: BufRead>(
     for line in reader.lines() {
         let line = line?;
 
-        match parse_line(&line) {
+        match parse_line(&line, strict) {
             Ok(entry) => {
                 if level_filter.map_or(true, |lvl| entry.level == lvl) {
                     entries.push(entry);
@@ -39,7 +39,7 @@ pub fn stream_logs<R: BufRead>(
     for line in reader.lines() {
         let line = line?;
 
-        match parse_line(&line) {
+        match parse_line(&line, strict) {
             Ok(entry) => {
                 if level_filter.map_or(true, |lvl| entry.level == lvl) {
                     on_entry(entry);

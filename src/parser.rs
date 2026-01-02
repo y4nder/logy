@@ -1,15 +1,20 @@
+use chrono::NaiveDate;
+
 use crate::{
     error::LogyError,
     log::{LogEntry, LogLevel},
 };
 
-pub fn parse_line(line: &str) -> Result<LogEntry, LogyError> {
+pub fn parse_line(line: &str, strict: bool) -> Result<LogEntry, LogyError> {
     let mut parts = line.splitn(3, ' ');
 
-    let date = parts
-        .next()
-        .ok_or_else(|| LogyError::ParseError("missing date"))?
-        .to_string();
+    let date_str = parts.next().ok_or(LogyError::ParseError("missing date"))?;
+
+    if strict {
+        NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+            .map_err(|_| LogyError::ParseError("invalid date"))?;
+    }
+
     let level_str = parts
         .next()
         .ok_or_else(|| LogyError::ParseError("missing log level"))?;
@@ -20,7 +25,7 @@ pub fn parse_line(line: &str) -> Result<LogEntry, LogyError> {
 
     let level = parse_level(level_str)?;
     Ok(LogEntry {
-        date,
+        date: date_str.to_string(),
         level,
         message,
     })

@@ -1,4 +1,5 @@
 2025-03-21 INFO User login succeeded
 2025-03-21 WARN Rate limit approaching
-2025-21-21 ERROR Database timeout
+2025-03-21 ERROR Database timeout
+2025-21-21 DEBUG This should fail
 2025-03-21 INFO User logout

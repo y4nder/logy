@@ -1,4 +1,5 @@
 use std::{
+    error::Error,
     fs::File,
     io::{self, BufReader},
 };
@@ -13,12 +14,14 @@ fn main() {
         Ok(o) => o,
         Err(e) => {
             eprintln!("error: {}", e);
+            debug_error(&e);
             std::process::exit(1);
         }
     };
 
     if let Err(e) = run(opts) {
         eprintln!("error: {}", e);
+        debug_error(&e);
         std::process::exit(1);
     }
 }
@@ -39,7 +42,7 @@ fn run(opts: CliOptions) -> Result<(), LogyError> {
             println!("{}", serde_json::to_string_pretty(&entries)?);
         } else {
             for entry in &entries {
-                println!("{:?}", entry);
+                println!("{}", entry);
             }
         }
     }
@@ -64,7 +67,20 @@ fn print_entry(entry: &log::LogEntry, json: bool) {
 
 fn sort_entries(entries: &mut Vec<LogEntry>, sort_mode: SortMode) {
     match sort_mode {
-        SortMode::Desc => entries.sort_by_key(|e| std::cmp::Reverse(e.date)),
-        SortMode::Asc => entries.sort_by_key(|e| e.date),
+        SortMode::Desc => entries.sort_by_key(|e| std::cmp::Reverse(e.timestamp)),
+        SortMode::Asc => entries.sort_by_key(|e| e.timestamp),
+    }
+}
+
+fn debug_error(err: &LogyError) {
+    eprintln!("DISPLAY: {}", err);
+
+    let mut current = err.source();
+    let mut depth = 1;
+
+    while let Some(src) = current {
+        eprintln!("SOURCE {}: {}", depth, src);
+        current = src.source();
+        depth += 1;
     }
 }

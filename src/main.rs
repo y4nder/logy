@@ -4,21 +4,8 @@ use std::{
 };
 
 use clap::Parser;
+use logy::*;
 
-use crate::{
-    cli::{CliArgs, CliOptions},
-    error::LogyError,
-    filters::SortMode,
-    log::LogEntry,
-    reader::extract_log_entries,
-};
-
-mod cli;
-mod error;
-mod filters;
-mod log;
-mod parser;
-mod reader;
 fn main() {
     let args = CliArgs::parse();
 
@@ -44,7 +31,7 @@ fn run(opts: CliOptions) -> Result<(), LogyError> {
             print_entry(&entry, opts.json);
         })?;
     } else {
-        let mut entries = extract_log_entries(reader, &opts.filters, opts.strict)?;
+        let mut entries = reader::extract_log_entries(reader, &opts.filters, opts.strict)?;
 
         sort_entries(&mut entries, opts.filters.sort);
 

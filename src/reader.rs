@@ -1,7 +1,5 @@
+use crate::{error::LogyError, filters::Filters, log::LogEntry, parser::parse_line};
 use std::io::BufRead;
-
-use crate::parser::parse_line;
-use crate::{error::LogyError, filters::Filters, log::LogEntry};
 
 pub fn extract_log_entries<R: BufRead>(
     reader: R,

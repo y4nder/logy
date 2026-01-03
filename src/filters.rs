@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::NaiveDateTime;
 use clap::ValueEnum;
 use serde::Serialize;
 
@@ -13,7 +13,7 @@ pub enum SortMode {
 #[derive(Debug, Clone)]
 pub struct Filters {
     pub level: Option<LogLevel>,
-    pub since: Option<NaiveDate>,
-    pub until: Option<NaiveDate>,
+    pub since: Option<NaiveDateTime>,
+    pub until: Option<NaiveDateTime>,
     pub sort: SortMode,
 }

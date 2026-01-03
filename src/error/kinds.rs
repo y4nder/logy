@@ -1,7 +1,7 @@
 use core::fmt;
 use std::io;
 
-use chrono::NaiveDate;
+use chrono::NaiveDateTime;
 
 #[derive(Debug)]
 pub enum LogyError {
@@ -10,8 +10,8 @@ pub enum LogyError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
     InvalidRange {
-        since: NaiveDate,
-        until: NaiveDate,
+        since: NaiveDateTime,
+        until: NaiveDateTime,
     },
     InvalidDate {
         field: &'static str,

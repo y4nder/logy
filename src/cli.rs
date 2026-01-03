@@ -78,24 +78,32 @@ impl TryFrom<CliArgs> for CliOptions {
 
     fn try_from(args: CliArgs) -> Result<Self, Self::Error> {
         let since = match args.since {
-            Some(s) => Some(NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(|err| {
-                LogyError::InvalidDate {
-                    field: "since",
-                    value: s.into(),
-                    source: Box::new(ChronoDateError(err)),
-                }
-            })?),
+            Some(s) => {
+                let d = NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(|err| {
+                    LogyError::InvalidDate {
+                        field: "since",
+                        value: s.into(),
+                        source: Box::new(ChronoDateError(err)),
+                    }
+                })?;
+
+                Some(d.and_hms_opt(0, 0, 0).unwrap())
+            }
             None => None,
         };
 
         let until = match args.until {
-            Some(s) => Some(NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(|err| {
-                LogyError::InvalidDate {
-                    field: "until",
-                    value: s.into(),
-                    source: Box::new(ChronoDateError(err)),
-                }
-            })?),
+            Some(s) => {
+                let d = NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(|err| {
+                    LogyError::InvalidDate {
+                        field: "until",
+                        value: s.into(),
+                        source: Box::new(ChronoDateError(err)),
+                    }
+                })?;
+
+                Some(d.and_hms_opt(0, 0, 0).unwrap())
+            }
             None => None,
         };
 
